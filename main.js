@@ -36,10 +36,10 @@
   /* ------------------------------------------------------------------
    *  画布与上下文
    * ---------------------------------------------------------------- */
-  const canvas = document.getElementById('scene');
-  const ctx = canvas.getContext('2d', { alpha: false });
-  const hintEl = document.getElementById('hint');
-  const yearEl = document.getElementById('year');
+  let canvas = null;
+  let ctx = null;
+  let hintEl = null;
+  let yearEl = null;
 
   // 场景层：先画在透明画布上，方便整体做泛光
   const sceneCanvas = document.createElement('canvas');
@@ -1000,7 +1000,39 @@
   /* ------------------------------------------------------------------
    *  初始化
    * ---------------------------------------------------------------- */
+  /**
+   * 找到画布；如果站点平台把 <canvas> 过滤掉了，就自己创建一个。
+   * 同时写入最小兜底样式，避免站点全局 CSS 把画布隐藏 / 压成 0 尺寸。
+   */
+  function ensureCanvas() {
+    canvas = document.getElementById('scene');
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'scene';
+      canvas.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(canvas);
+    }
+
+    Object.assign(canvas.style, {
+      position: 'fixed',
+      left: '0',
+      top: '0',
+      width: '100%',
+      height: '100%',
+      display: 'block',
+      zIndex: '0',
+      touchAction: 'none',
+      cursor: 'grab',
+    });
+
+    ctx = canvas.getContext('2d', { alpha: false });
+    hintEl = document.getElementById('hint');
+    yearEl = document.getElementById('year');
+  }
+
   function init() {
+    ensureCanvas();
+
     if (yearEl) yearEl.textContent = String(new Date().getFullYear());
     buildStars();
     buildWorld();
@@ -1015,7 +1047,16 @@
 
     lastTime = performance.now();
     requestAnimationFrame(frame);
+
+    // 便于排查：控制台能看到这一行，说明脚本确实执行了
+    if (window.console && console.info) {
+      console.info('[Christmas Tree] scene initialized');
+    }
   }
 
-  init();
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
 })();
