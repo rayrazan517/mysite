@@ -1,0 +1,70 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif;
+  background: #0f1115;
+  color: #e6edf3;
+  line-height: 1.7;
+  padding: 0 20px 40px;
+}
+
+header {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 72px 0 40px;
+}
+
+h1 {
+  font-size: 40px;
+  letter-spacing: -1px;
+  background: linear-gradient(90deg, #58a6ff, #a371f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.sub { color: #8b949e; margin-top: 6px; }
+
+main {
+  max-width: 720px;
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+}
+
+.card {
+  background: #161b22;
+  border: 1px solid #21262d;
+  border-radius: 12px;
+  padding: 22px 24px;
+}
+
+.card h2 { font-size: 18px; margin-bottom: 10px; }
+.card ul { padding-left: 20px; color: #c9d1d9; }
+.card li { margin: 4px 0; }
+
+button {
+  background: #238636;
+  color: #fff;
+  border: 0;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+button:hover { background: #2ea043; }
+
+#out { margin-top: 12px; color: #58a6ff; }
+
+footer {
+  max-width: 720px;
+  margin: 48px auto 0;
+  color: #484f58;
+  font-size: 13px;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  h1 { font-size: 28px; }
+  header { padding-top: 40px; }
+}
