@@ -1,0 +1,7 @@
+# Cloudflare Worker 配置 —— 纯静态资源站
+# 部署：npx wrangler deploy
+name = "meloveme"
+compatibility_date = "2025-01-01"
+
+[assets]
+directory = "./"
