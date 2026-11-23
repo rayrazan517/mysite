@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>星空 · 深空星野</title>
+  <meta name="description" content="一片可以环顾的深空星野：银河、流星，点击夜空还能点亮一颗星。" />
+  <meta name="theme-color" content="#03050c" />
+  <meta property="og:title" content="星空 · 深空星野" />
+  <meta property="og:description" content="一片可以环顾的深空星野：银河、流星，点击夜空还能点亮一颗星。" />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Cdefs%3E%3CradialGradient%20id='g'%3E%3Cstop%20offset='0'%20stop-color='%23fff8e2'/%3E%3Cstop%20offset='1'%20stop-color='%23e9b45d'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpolygon%20points='50,5%2061,38%2095,38%2068,58%2078,93%2050,72%2022,93%2032,58%205,38%2039,38'%20fill='url(%23g)'/%3E%3C/svg%3E" />
+  <style>
+/* ============================================================
+   Starfield · 深空星野
+   页面样式：画布之外的氛围层、标题与返回入口
+   ============================================================ */
+
+:root {
+  --ink: #03050c;
+  --gold-1: #fffdf5;
+  --gold-2: #ffe6a8;
+  --gold-3: #e9b45d;
+  --accent: 168, 206, 255;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+html {
+  background: var(--ink);
+}
+
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  background:
+    radial-gradient(120% 90% at 50% 40%, #070d1e 0%, #03060f 55%, #010206 100%);
+  color: #f4f6fb;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- 画布 ---------- */
+
+#scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+}
+
+#scene:active {
+  cursor: grabbing;
+}
+
+/* ---------- 暗角与胶片颗粒 ---------- */
+
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 118% 82% at 50% 42%,
+      rgba(0, 0, 0, 0) 40%,
+      rgba(2, 4, 10, 0.55) 100%),
+    linear-gradient(180deg,
+      rgba(2, 4, 10, 0.34) 0%,
+      rgba(0, 0, 0, 0) 22%,
+      rgba(0, 0, 0, 0) 64%,
+      rgba(2, 4, 10, 0.55) 100%);
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* ---------- 返回首页 ---------- */
+
+.back {
+  position: fixed;
+  top: clamp(16px, 3vh, 30px);
+  left: clamp(16px, 3vw, 34px);
+  z-index: 4;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: rgba(209, 224, 255, 0.55);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.back:hover,
+.back:focus-visible {
+  color: var(--gold-2);
+}
+
+/* ---------- 标题 ---------- */
+
+.hero {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: clamp(22px, 5.5vh, 64px);
+  z-index: 3;
+  padding: 0 24px;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  animation: hero-in 2.2s cubic-bezier(0.22, 0.61, 0.31, 1) 0.35s both;
+}
+
+.hero__kicker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.8vw, 20px);
+  margin: 0 0 clamp(10px, 1.4vh, 16px);
+  font-size: clamp(9px, 1.05vw, 12px);
+  font-weight: 600;
+  letter-spacing: 0.6em;
+  text-indent: 0.6em;
+  text-transform: uppercase;
+  color: rgba(var(--accent), 0.62);
+  text-shadow: 0 0 18px rgba(var(--accent), 0.3);
+}
+
+.hero__kicker::before,
+.hero__kicker::after {
+  content: "";
+  width: clamp(24px, 5vw, 66px);
+  height: 1px;
+  background: linear-gradient(90deg, rgba(var(--accent), 0), rgba(var(--accent), 0.5));
+}
+
+.hero__kicker::after {
+  transform: scaleX(-1);
+}
+
+.hero__title {
+  margin: 0;
+  font-family: "Cormorant Garamond", "Playfair Display", Georgia,
+    "Times New Roman", "Songti SC", "STSong", serif;
+  font-weight: 500;
+  font-size: clamp(38px, 7.2vw, 92px);
+  line-height: 1.02;
+  letter-spacing: 0.08em;
+  text-indent: 0.08em;
+  background: linear-gradient(178deg,
+    #ffffff 0%,
+    #eaf2ff 30%,
+    #c3d8ff 62%,
+    #8aa7e0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter:
+    drop-shadow(0 0 24px rgba(150, 195, 255, 0.26))
+    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35))
+    drop-shadow(0 14px 40px rgba(0, 0, 0, 0.55));
+}
+
+.hero__sub {
+  margin: clamp(10px, 1.6vh, 18px) 0 0;
+  font-size: clamp(10px, 1.05vw, 12px);
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  color: rgba(214, 229, 255, 0.52);
+}
+
+/* ---------- 操作提示 ---------- */
+
+.hint {
+  position: fixed;
+  top: clamp(16px, 3vh, 30px);
+  right: clamp(16px, 3vw, 34px);
+  z-index: 3;
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: rgba(209, 224, 255, 0.42);
+  pointer-events: none;
+  transition: opacity 1.6s ease;
+}
+
+.hint.is-hidden {
+  opacity: 0;
+}
+
+/* ---------- 动画 ---------- */
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* ---------- 降级 / 自适应 ---------- */
+
+.noscript {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  background: var(--ink);
+  color: var(--gold-2);
+  font-size: 15px;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 700px) {
+  .hint {
+    display: none;
+  }
+
+  .hero {
+    padding: 0 18px;
+  }
+
+  .hero__title {
+    font-size: clamp(32px, 9vw, 56px);
+  }
+
+  .hero__kicker {
+    letter-spacing: 0.46em;
+    text-indent: 0.46em;
+  }
+
+  .grain {
+    display: none;
+  }
+}
+
+@media (max-height: 560px) {
+  .hero {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    animation: none;
+  }
+}
+  </style>
+</head>
+<body>
+  <!-- 粒子画布 -->
+  <canvas id="scene" aria-hidden="true"></canvas>
+
+  <a class="back" href="./index.html">← 返回首页</a>
+
+  <!-- 氛围覆盖层 -->
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- 标题 -->
+  <main class="hero">
+    <p class="hero__kicker">Under the Stars</p>
+    <h1 class="hero__title">星空</h1>
+    <p class="hero__sub">把心事说给银河听</p>
+  </main>
+
+  <p class="hint" id="hint">拖动环顾 · 点击点亮</p>
+
+  <noscript>
+    <p class="noscript">请启用 JavaScript 以查看星空。</p>
+  </noscript>
+
+  <script>
+/*!
+ * ============================================================================
+ *  深空星野 · Starfield
+ * ----------------------------------------------------------------------------
+ *  · 纯 Canvas 2D 手写三维星空，没有任何外部依赖
+ *  · 球面星野 + 银河带 / 独立闪烁 / 流星 / 点击点亮 / 指针视差
+ *  · 支持鼠标拖拽环顾、移动端手势；自动适配尺寸与像素密度
+ *
+ *  想改效果，基本只需要调整下面 CONFIG 里的数字。
+ * ============================================================================
+ */
+(() => {
+  'use strict';
+
+  /* ------------------------------------------------------------------
+   *  可调参数
+   * ---------------------------------------------------------------- */
+  const CONFIG = {
+    stars: 1500,        // 星野主体星星数（窄屏自动减少）
+    band: 520,          // 银河带额外星点
+    bright: 34,         // 带十字星芒的亮星数
+    autoSpin: 0.018,    // 自动环顾速度（弧度/秒）
+    twinkle: 1.3,       // 闪烁速度
+    shootMin: 4,        // 流星最短间隔（秒）
+    shootMax: 9,        // 流星最长间隔（秒）
+    flareLife: 0.9,     // 点击光斑持续时间
+  };
+
+  const TAU = Math.PI * 2;
+  const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const gauss = () => {
+    let u = 0;
+    let v = 0;
+    while (!u) u = Math.random();
+    while (!v) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * v);
+  };
+
+  const prefersReduced = window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : null;
+  let reduced = !!(prefersReduced && prefersReduced.matches);
+
+  /* ------------------------------------------------------------------
+   *  画布与上下文
+   * ---------------------------------------------------------------- */
+  let canvas = null;
+  let ctx = null;
+  let hintEl = null;
+  let bgCanvas = null;
+
+  let W = 0;
+  let H = 0;
+  let DPR = 1;
+  let CX = 0;
+  let CY = 0;
+  let FOCAL = 900;
+
+  let time = 0;
+  let yaw = 0;
+  let pitch = 0.06;
+  let yawVel = 0;
+  let targetPitch = 0.06;
+
+  let pointerNX = 0;
+  let pointerNY = 0;
+  let dragging = false;
+  let lastX = 0;
+  let lastY = 0;
+  let moved = 0;
+  let downX = 0;
+  let downY = 0;
+
+  /* ------------------------------------------------------------------
+   *  调色板
+   * ---------------------------------------------------------------- */
+  const STAR_COLORS = [
+    [255, 250, 240],
+    [255, 236, 208],
+    [214, 230, 255],
+    [186, 210, 255],
+    [170, 240, 255],
+    [255, 214, 225],
+  ];
+  const BAND_COLOR = [190, 210, 255];
+  const METEOR_COLOR = [220, 240, 255];
+
+  /* ------------------------------------------------------------------
+   *  辉光贴图
+   * ---------------------------------------------------------------- */
+  const spriteCache = new Map();
+
+  function glowSprite(rgb, core = 0.9) {
+    const key = rgb[0] + ',' + rgb[1] + ',' + rgb[2] + '|' + core;
+    const cached = spriteCache.get(key);
+    if (cached) return cached;
+
+    const size = 64;
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const g = c.getContext('2d');
+    const half = size / 2;
+    const [r, gg, b] = rgb;
+
+    const grad = g.createRadialGradient(half, half, 0, half, half, half);
+    grad.addColorStop(0, `rgba(255,255,255,${core})`);
+    grad.addColorStop(0.16, `rgba(${r},${gg},${b},0.92)`);
+    grad.addColorStop(0.4, `rgba(${r},${gg},${b},0.38)`);
+    grad.addColorStop(0.7, `rgba(${r},${gg},${b},0.1)`);
+    grad.addColorStop(1, `rgba(${r},${gg},${b},0)`);
+    g.fillStyle = grad;
+    g.fillRect(0, 0, size, size);
+
+    spriteCache.set(key, c);
+    return c;
+  }
+
+  /* 亮星：辉光 + 四道星芒 */
+  function makeCrossSprite(rgb) {
+    const S = 220;
+    const c = document.createElement('canvas');
+    c.width = c.height = S;
+    const g = c.getContext('2d');
+    const half = S / 2;
+    const [r, gg, b] = rgb;
+
+    let grad = g.createRadialGradient(half, half, 0, half, half, half);
+    grad.addColorStop(0, 'rgba(255,255,255,0.95)');
+    grad.addColorStop(0.12, `rgba(${r},${gg},${b},0.55)`);
+    grad.addColorStop(0.34, `rgba(${r},${gg},${b},0.14)`);
+    grad.addColorStop(1, `rgba(${r},${gg},${b},0)`);
+    g.fillStyle = grad;
+    g.fillRect(0, 0, S, S);
+
+    for (let i = 0; i < 4; i++) {
+      const len = i % 2 === 0 ? S * 0.48 : S * 0.3;
+      const wid = S * 0.018;
+      g.save();
+      g.translate(half, half);
+      g.rotate((i * Math.PI) / 2);
+      g.scale(len, wid);
+      const rg = g.createRadialGradient(0, 0, 0, 0, 0, 1);
+      rg.addColorStop(0, 'rgba(255,255,255,0.9)');
+      rg.addColorStop(0.35, `rgba(${r},${gg},${b},0.4)`);
+      rg.addColorStop(1, `rgba(${r},${gg},${b},0)`);
+      g.fillStyle = rg;
+      g.beginPath();
+      g.arc(0, 0, 1, 0, TAU);
+      g.fill();
+      g.restore();
+    }
+
+    return c;
+  }
+
+  const starSprites = STAR_COLORS.map((c) => glowSprite(c, 0.9));
+  const bandSprite = glowSprite(BAND_COLOR, 0.7);
+  const meteorSprite = glowSprite(METEOR_COLOR, 1);
+  const crossSprites = [
+    makeCrossSprite([255, 246, 226]),
+    makeCrossSprite([200, 222, 255]),
+    makeCrossSprite([255, 214, 226]),
+  ];
+
+  /* ------------------------------------------------------------------
+   *  场景数据
+   * ---------------------------------------------------------------- */
+  const stars = [];
+  const meteors = [];
+  const flares = [];
+  let meteorTimer = rand(2, 4);
+
+  function normalize(x, y, z) {
+    const l = Math.hypot(x, y, z) || 1;
+    return [x / l, y / l, z / l];
+  }
+
+  function buildStars() {
+    stars.length = 0;
+
+    const narrow = W < 700;
+    const count = reduced ? 900 : narrow ? 1100 : CONFIG.stars;
+
+    for (let i = 0; i < count; i++) {
+      const u = rand(0, TAU);
+      const v = Math.acos(rand(-1, 1));
+      const x = Math.sin(v) * Math.cos(u);
+      const y = Math.cos(v);
+      const z = Math.sin(v) * Math.sin(u);
+      const bright = i < CONFIG.bright;
+
+      stars.push({
+        x, y, z,
+        size: bright ? rand(2.4, 3.6) : rand(0.4, 1.6),
+        alpha: bright ? rand(0.75, 1) : rand(0.28, 0.85),
+        tw: rand(0.4, CONFIG.twinkle * 1.6),
+        phase: rand(0, TAU),
+        sprite: bright
+          ? crossSprites[(Math.random() * crossSprites.length) | 0]
+          : starSprites[(Math.random() * starSprites.length) | 0],
+        cross: bright,
+      });
+    }
+
+    /* 银河带：沿一个大圆聚集，并整体倾斜一点 */
+    const bandCount = reduced ? 320 : narrow ? 400 : CONFIG.band;
+    const tilt = 0.44;
+    const ct = Math.cos(tilt);
+    const st = Math.sin(tilt);
+
+    for (let i = 0; i < bandCount; i++) {
+      const u = rand(0, TAU);
+      const off = gauss() * 0.14;
+      let x = Math.cos(u);
+      let y = off;
+      let z = Math.sin(u);
+      const [nx, ny, nz] = normalize(x, y, z);
+      stars.push({
+        x: nx,
+        y: ny * ct - nz * st,
+        z: ny * st + nz * ct,
+        size: rand(0.35, 1.1),
+        alpha: rand(0.12, 0.48),
+        tw: rand(0.3, CONFIG.twinkle),
+        phase: rand(0, TAU),
+        sprite: bandSprite,
+        cross: false,
+      });
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   *  布局 / 背景
+   * ---------------------------------------------------------------- */
+  function resize() {
+    W = Math.max(1, window.innerWidth);
+    H = Math.max(1, window.innerHeight);
+
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = Math.min(dpr, Math.sqrt(5200000 / (W * H)));
+    DPR = clamp(dpr, 1, 2);
+
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+
+    CX = W * 0.5;
+    CY = H * 0.46;
+    FOCAL = Math.min(W, H) * (W < 700 ? 1.05 : 0.92);
+
+    buildBackground();
+  }
+
+  function buildBackground() {
+    if (!bgCanvas) bgCanvas = document.createElement('canvas');
+    bgCanvas.width = Math.round(W * DPR);
+    bgCanvas.height = Math.round(H * DPR);
+    const g = bgCanvas.getContext('2d');
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+    const base = g.createLinearGradient(0, 0, 0, H);
+    base.addColorStop(0, '#060c1c');
+    base.addColorStop(0.42, '#03060f');
+    base.addColorStop(0.8, '#02040a');
+    base.addColorStop(1, '#010104');
+    g.fillStyle = base;
+    g.fillRect(0, 0, W, H);
+
+    const R = Math.max(W, H);
+
+    let rg = g.createRadialGradient(
+      W * 0.26, H * 0.24, 0,
+      W * 0.26, H * 0.24, R * 0.5
+    );
+    rg.addColorStop(0, 'rgba(64, 46, 130, 0.24)');
+    rg.addColorStop(0.5, 'rgba(36, 30, 82, 0.1)');
+    rg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = rg;
+    g.fillRect(0, 0, W, H);
+
+    rg = g.createRadialGradient(
+      W * 0.76, H * 0.68, 0,
+      W * 0.76, H * 0.68, R * 0.4
+    );
+    rg.addColorStop(0, 'rgba(24, 76, 96, 0.2)');
+    rg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = rg;
+    g.fillRect(0, 0, W, H);
+
+    /* 银河：一条被倾斜的柔和光带 + 细碎星尘 */
+    g.save();
+    g.translate(W * 0.5, H * 0.47);
+    g.rotate(-0.52);
+    const bandH = Math.max(H, W) * 0.42;
+    const lg = g.createLinearGradient(0, -bandH, 0, bandH);
+    lg.addColorStop(0, 'rgba(150, 180, 255, 0)');
+    lg.addColorStop(0.42, 'rgba(150, 180, 255, 0.07)');
+    lg.addColorStop(0.5, 'rgba(190, 210, 255, 0.14)');
+    lg.addColorStop(0.58, 'rgba(150, 180, 255, 0.07)');
+    lg.addColorStop(1, 'rgba(150, 180, 255, 0)');
+    g.fillStyle = lg;
+    g.fillRect(-R, -bandH, R * 2, bandH * 2);
+
+    for (let i = 0; i < 420; i++) {
+      const bx = rand(-R, R);
+      const by = gauss() * bandH * 0.16;
+      const a = rand(0.05, 0.35);
+      const r = rand(0.3, 1);
+      g.fillStyle = `rgba(205, 222, 255, ${a})`;
+      g.beginPath();
+      g.arc(bx, by, r, 0, TAU);
+      g.fill();
+    }
+    g.restore();
+  }
+
+  /* ------------------------------------------------------------------
+   *  流星 / 光斑
+   * ---------------------------------------------------------------- */
+  function spawnMeteor() {
+    const fromLeft = Math.random() < 0.5;
+    const x = fromLeft ? rand(-W * 0.1, W * 0.5) : rand(W * 0.5, W * 1.1);
+    const y = rand(-H * 0.05, H * 0.42);
+    const dir = fromLeft ? 1 : -1;
+    const speed = rand(520, 980);
+    const angle = rand(0.22, 0.5);
+    meteors.push({
+      x,
+      y,
+      vx: dir * Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: rand(0.9, 1.5),
+      maxLife: 1.5,
+      len: rand(120, 260),
+    });
+  }
+
+  function updateMeteors(dt) {
+    for (let i = meteors.length - 1; i >= 0; i--) {
+      const m = meteors[i];
+      m.life -= dt;
+      if (m.life <= 0) {
+        meteors.splice(i, 1);
+        continue;
+      }
+      m.x += m.vx * dt;
+      m.y += m.vy * dt;
+    }
+  }
+
+  function spawnFlare(x, y) {
+    flares.push({ x, y, life: CONFIG.flareLife, maxLife: CONFIG.flareLife });
+  }
+
+  function updateFlares(dt) {
+    for (let i = flares.length - 1; i >= 0; i--) {
+      const f = flares[i];
+      f.life -= dt;
+      if (f.life <= 0) flares.splice(i, 1);
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   *  绘制
+   * ---------------------------------------------------------------- */
+  function drawStars() {
+    const cy = Math.cos(yaw);
+    const sy = Math.sin(yaw);
+    const cp = Math.cos(pitch);
+    const sp = Math.sin(pitch);
+
+    for (let i = 0; i < stars.length; i++) {
+      const s = stars[i];
+
+      /* 先绕 Y 轴转，再绕 X 轴俯仰 */
+      const dx0 = s.x * cy - s.z * sy;
+      const dz0 = s.x * sy + s.z * cy;
+      const dy = s.y * cp - dz0 * sp;
+      const dz = s.y * sp + dz0 * cp;
+
+      if (dz < 0.06) continue;
+
+      const persp = FOCAL / dz;
+      const sx = CX + dx0 * persp;
+      const sy2 = CY - dy * persp;
+
+      if (sx < -40 || sx > W + 40 || sy2 < -40 || sy2 > H + 40) continue;
+
+      const tw = reduced ? 1 : 0.72 + 0.28 * Math.sin(time * s.tw + s.phase);
+      const size = s.size * (3.6 + tw * 1.2);
+      const alpha = clamp(s.alpha * tw, 0, 1);
+
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(s.sprite, sx - size, sy2 - size, size * 2, size * 2);
+    }
+  }
+
+  function drawMeteors() {
+    for (let i = 0; i < meteors.length; i++) {
+      const m = meteors[i];
+      const t = clamp(m.life / m.maxLife, 0, 1);
+      const len = m.len * (0.4 + t * 0.6);
+      const speed = Math.hypot(m.vx, m.vy) || 1;
+      const bx = m.x - (m.vx / speed) * len;
+      const by = m.y - (m.vy / speed) * len;
+
+      const grad = ctx.createLinearGradient(m.x, m.y, bx, by);
+      grad.addColorStop(0, `rgba(235, 246, 255, ${0.75 * t})`);
+      grad.addColorStop(0.35, `rgba(180, 215, 255, ${0.3 * t})`);
+      grad.addColorStop(1, 'rgba(150, 190, 255, 0)');
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 1.6;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(m.x, m.y);
+      ctx.lineTo(bx, by);
+      ctx.stroke();
+
+      const size = 7 * (0.7 + t * 0.6);
+      ctx.globalAlpha = clamp(t * 0.9, 0, 1);
+      ctx.drawImage(meteorSprite, m.x - size, m.y - size, size * 2, size * 2);
+    }
+  }
+
+  function drawFlares() {
+    for (let i = 0; i < flares.length; i++) {
+      const f = flares[i];
+      const t = clamp(f.life / f.maxLife, 0, 1);
+      const grow = 1 - t;
+      const ring = 10 + grow * 46;
+
+      ctx.globalAlpha = Math.pow(t, 1.5) * 0.7;
+      ctx.strokeStyle = `rgba(205, 228, 255, ${0.65 * t})`;
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, ring, 0, TAU);
+      ctx.stroke();
+
+      const size = (10 + grow * 26) * 1.8;
+      ctx.globalAlpha = Math.pow(t, 1.8) * 0.9;
+      ctx.drawImage(crossSprites[1], f.x - size, f.y - size, size * 2, size * 2);
+    }
+  }
+
+  function draw() {
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+    ctx.drawImage(bgCanvas, 0, 0, W, H);
+
+    ctx.globalCompositeOperation = 'lighter';
+    drawStars();
+    drawMeteors();
+    drawFlares();
+    ctx.globalAlpha = 1;
+  }
+
+  /* ------------------------------------------------------------------
+   *  主循环
+   * ---------------------------------------------------------------- */
+  let lastTime = 0;
+  let rafId = 0;
+
+  function frame(now) {
+    if (!lastTime) lastTime = now;
+    const real = (now - lastTime) / 1000;
+    lastTime = now;
+    const dt = clamp(real, 0, 0.05);
+    time += dt;
+
+    const autoSpin = reduced ? 0 : CONFIG.autoSpin;
+    if (!dragging) {
+      yaw += yawVel * dt;
+      yawVel += (autoSpin - yawVel) * Math.min(1, dt * 1.5);
+    }
+
+    const targetY = targetPitch + pointerNY * 0.12;
+    pitch += (targetY - pitch) * Math.min(1, dt * 2.4);
+
+    if (!reduced) {
+      meteorTimer -= dt;
+      if (meteorTimer <= 0) {
+        spawnMeteor();
+        meteorTimer = rand(CONFIG.shootMin, CONFIG.shootMax);
+      }
+    }
+
+    updateMeteors(dt);
+    updateFlares(dt);
+    draw();
+
+    rafId = requestAnimationFrame(frame);
+  }
+
+  /* ------------------------------------------------------------------
+   *  交互
+   * ---------------------------------------------------------------- */
+  function hideHint() {
+    if (!hintEl || hintEl.classList.contains('is-hidden')) return;
+    hintEl.classList.add('is-hidden');
+  }
+
+  function onPointerDown(e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    dragging = true;
+    moved = 0;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    downX = e.clientX;
+    downY = e.clientY;
+    yawVel = 0;
+    hideHint();
+  }
+
+  function onPointerMove(e) {
+    pointerNX = (e.clientX / W) * 2 - 1;
+    pointerNY = (e.clientY / H) * 2 - 1;
+
+    if (!dragging) return;
+    const dx = e.clientX - lastX;
+    const dy = e.clientY - lastY;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    moved += Math.abs(dx) + Math.abs(dy);
+    yaw -= dx * 0.0032;
+    yawVel = clamp(-dx * 0.25, -1.6, 1.6);
+    targetPitch = clamp(targetPitch + dy * 0.0022, -0.9, 0.9);
+  }
+
+  function onPointerUp(e) {
+    if (!dragging) return;
+    dragging = false;
+    if (Math.hypot(e.clientX - downX, e.clientY - downY) < 8 && moved < 10) {
+      spawnFlare(e.clientX, e.clientY);
+    }
+  }
+
+  function addListeners() {
+    canvas.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
+    window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', () => setTimeout(resize, 120));
+    window.addEventListener('blur', () => {
+      dragging = false;
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      } else if (!rafId) {
+        lastTime = 0;
+        rafId = requestAnimationFrame(frame);
+      }
+    });
+
+    if (prefersReduced && prefersReduced.addEventListener) {
+      prefersReduced.addEventListener('change', (e) => {
+        reduced = e.matches;
+      });
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   *  初始化
+   * ---------------------------------------------------------------- */
+  function ensureCanvas() {
+    canvas = document.getElementById('scene');
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'scene';
+      canvas.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(canvas);
+    }
+
+    Object.assign(canvas.style, {
+      position: 'fixed',
+      left: '0',
+      top: '0',
+      width: '100%',
+      height: '100%',
+      display: 'block',
+      zIndex: '0',
+      touchAction: 'none',
+      cursor: 'grab',
+    });
+
+    ctx = canvas.getContext('2d', { alpha: false });
+    hintEl = document.getElementById('hint');
+  }
+
+  function init() {
+    ensureCanvas();
+    resize();
+    buildStars();
+    addListeners();
+
+    if (hintEl) {
+      setTimeout(() => hintEl.classList.add('is-hidden'), 10000);
+    }
+
+    draw();
+    lastTime = 0;
+    rafId = requestAnimationFrame(frame);
+
+    if (window.console && console.info) {
+      console.info('[Starfield] scene initialized');
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+})();
+  </script>
+</body>
+</html>

@@ -202,30 +202,48 @@ body {
 /* 可进入的卡片 */
 
 .card--active {
-  border-color: rgba(255, 214, 140, 0.5);
+  --accent: 255, 214, 140;
+  border-color: rgba(var(--accent), 0.5);
   background: linear-gradient(180deg,
-    rgba(255, 205, 120, 0.14),
-    rgba(255, 205, 120, 0.035));
+    rgba(var(--accent), 0.14),
+    rgba(var(--accent), 0.035));
   box-shadow:
-    0 0 0 1px rgba(255, 214, 140, 0.1),
-    0 18px 46px -22px rgba(255, 190, 90, 0.75);
+    0 0 0 1px rgba(var(--accent), 0.1),
+    0 18px 46px -22px rgba(var(--accent), 0.75);
+}
+
+.card--heart {
+  --accent: 255, 130, 160;
+}
+
+.card--firework {
+  --accent: 255, 205, 120;
+}
+
+.card--stars {
+  --accent: 170, 210, 255;
+}
+
+.card--active .card__icon {
+  color: rgb(var(--accent));
+  filter: drop-shadow(0 0 8px rgba(var(--accent), 0.45));
 }
 
 .card--active .card__note {
-  color: rgba(255, 227, 168, 0.62);
+  color: rgba(var(--accent), 0.72);
 }
 
 .card--active:hover,
 .card--active:focus-visible {
   transform: translateY(-3px);
-  border-color: rgba(255, 226, 168, 0.85);
+  border-color: rgba(var(--accent), 0.85);
   box-shadow:
-    0 0 0 1px rgba(255, 226, 168, 0.2),
-    0 24px 54px -20px rgba(255, 190, 90, 0.85);
+    0 0 0 1px rgba(var(--accent), 0.2),
+    0 24px 54px -20px rgba(var(--accent), 0.85);
 }
 
 .card--active:focus-visible {
-  outline: 2px solid rgba(255, 226, 168, 0.75);
+  outline: 2px solid rgba(var(--accent), 0.75);
   outline-offset: 3px;
 }
 

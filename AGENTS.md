@@ -5,12 +5,15 @@
 
 ## 1. 这是什么项目
 
-个人站点 **meloveme.top**，两个页面：
+个人站点 **meloveme.top**，五个页面：
 
 | 页面 | 地址 | 内容 |
 | --- | --- | --- |
-| 首页 | `/` | 落地页：标题 + 进入圣诞树的入口 |
+| 首页 | `/` | 落地页：标题 + 五个入口卡片 |
 | 圣诞树 | `/tree` | 3D 粒子圣诞树，手写 Canvas 2D 投影，零依赖 |
+| 爱心 | `/heart` | 3D 粒子爱心：心跳脉动、漂浮星尘、点击星火 |
+| 烟花 | `/fireworks` | 粒子烟花：自动燃放，点击夜空发射一枚 |
+| 星空 | `/stars` | 可环顾的深空星野：银河、流星、点击点亮 |
 
 技术栈：原生 HTML + CSS + JavaScript，**没有框架、没有构建、没有 npm 运行时依赖**。
 
@@ -18,9 +21,12 @@
 
 | 文件 | 作用 | 能否删除 |
 | --- | --- | --- |
-| `index.html` | 首页结构，引用 `./home.css`，链接到 `./tree.html` | 不能（站点入口） |
+| `index.html` | 首页结构，引用 `./home.css`，链接到 `tree.html` / `heart.html` / `fireworks.html` / `stars.html` | 不能（站点入口） |
 | `home.css` | 首页样式 | 不能（被 index.html 引用） |
 | `tree.html` | 圣诞树页面，**样式与脚本全部内联**，单文件自包含 | 不能 |
+| `heart.html` | 爱心页面，**样式与脚本全部内联**，单文件自包含 | 不能 |
+| `fireworks.html` | 烟花页面，**样式与脚本全部内联**，单文件自包含 | 不能 |
+| `stars.html` | 星空页面，**样式与脚本全部内联**，单文件自包含 | 不能 |
 | `README.md` | 项目说明（面向人） | 保留 |
 | `AGENTS.md` | 本文件（面向 AI） | 保留 |
 | `CLAUDE.md` | 指向本文件的引用 | 保留 |
@@ -31,7 +37,7 @@
 
 ## 3. 目录与命名约定
 
-- 页面之间用**相对路径**：`./home.css`、`./tree.html`
+- 页面之间用**相对路径**：`./home.css`、`./tree.html`、`./heart.html`、`./fireworks.html`、`./stars.html`
 - 新增图片放 `images/`，文件名**小写英文 + 数字 + 连字符**
 - 禁止中文文件名和空格；路径一律用正斜杠 `/`
 
@@ -42,6 +48,7 @@
 - 类名 `kebab-case`，禁止内联样式（动态计算的值除外）
 - **不引入任何外部依赖**：不加 CDN 脚本、字体外链、统计代码，除非用户明确要求
 - `tree.html` 里的可调参数集中在脚本顶部的 `CONFIG` 对象，颜色在 `GREENS` / `LIGHTS` / `ORNAMENTS` / `SPARK_COLORS` 数组里，改效果只动这些位置
+- `heart.html` / `fireworks.html` / `stars.html` 同样是「顶部 `CONFIG` + 配色数组」的结构，粒子数、速度、重力、自动播放等都在 `CONFIG` 里
 
 ## 5. 线上环境
 
@@ -72,6 +79,17 @@
 ### 改圣诞树
 改 `tree.html`。树的效果参数在脚本顶部 `CONFIG`，配色在颜色数组里。**不要把它拆成外链 css/js**，它靠单文件自包含运行。
 
+### 改爱心 / 烟花 / 星空
+分别改 `heart.html`、`fireworks.html`、`stars.html`，同样是单文件自包含，**不要外链化**。
+
+| 页面 | 关键参数 |
+| --- | --- |
+| 爱心 | `particles`（粒子数）、`outline`（轮廓点）、`pulse`（心跳幅度）、`autoSpin` |
+| 烟花 | `maxParticles`、`autoLaunch`（自动间隔）、`gravity` / `damping`、`burstMin/Max`、`ringChance` |
+| 星空 | `stars`、`band`（银河带）、`autoSpin`、`twinkle`、`shootMin/Max`（流星间隔） |
+
+改完在桌面和 375×667 各看一次，重点确认：手机端不卡、标题不被粒子盖住、点击交互有反馈。
+
 ### 加新页面
 新建 `xxx.html`，从别的页面用 `<a href="./xxx.html">` 链接过去；样式可内联或新建 `xxx.css`。
 
@@ -80,8 +98,12 @@
 
 ## 8. 完成标准（每次改完自检）
 
-- [ ] 本地双击 `index.html`，首页正常，点入口能进 `tree.html`
+- [ ] 本地双击 `index.html`，首页正常，四个入口都能进入对应页面
 - [ ] `tree.html` 里圣诞树能显示、能旋转
+- [ ] `heart.html` 爱心能显示、能拖动、点击有星火
+- [ ] `fireworks.html` 自动燃放，点击能发射
+- [ ] `stars.html` 星空能环顾、有流星、点击能点亮
+- [ ] 每个子页左上角「← 返回首页」能回到 `index.html`
 - [ ] `F12 → Console` 无红色报错
 - [ ] 手机尺寸（375×667）下排版不重叠
 - [ ] 没有新增任何外部网络请求

@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>烟花 · 夜空里的光</title>
+  <meta name="description" content="一场用粒子写成的烟花：自动燃放，点击夜空的任意位置也能点亮一枚。" />
+  <meta name="theme-color" content="#03050c" />
+  <meta property="og:title" content="烟花 · 夜空里的光" />
+  <meta property="og:description" content="一场用粒子写成的烟花：自动燃放，点击夜空也能点亮一枚。" />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%20100%20100'%3E%3Cdefs%3E%3CradialGradient%20id='g'%3E%3Cstop%20offset='0'%20stop-color='%23fff8e2'/%3E%3Cstop%20offset='1'%20stop-color='%23e9b45d'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cpolygon%20points='50,5%2061,38%2095,38%2068,58%2078,93%2050,72%2022,93%2032,58%205,38%2039,38'%20fill='url(%23g)'/%3E%3C/svg%3E" />
+  <style>
+/* ============================================================
+   Fireworks · 烟花
+   页面样式：画布之外的氛围层、标题与返回入口
+   ============================================================ */
+
+:root {
+  --ink: #03050c;
+  --gold-1: #fffdf5;
+  --gold-2: #ffe6a8;
+  --gold-3: #e9b45d;
+  --accent: 255, 198, 120;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+html {
+  background: var(--ink);
+}
+
+body {
+  overflow: hidden;
+  overscroll-behavior: none;
+  background:
+    radial-gradient(120% 90% at 50% 38%, #0a1226 0%, #04070f 55%, #010206 100%);
+  color: #f4f6fb;
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* ---------- 画布 ---------- */
+
+#scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+/* ---------- 暗角与胶片颗粒 ---------- */
+
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 118% 82% at 50% 42%,
+      rgba(0, 0, 0, 0) 40%,
+      rgba(2, 4, 10, 0.55) 100%),
+    linear-gradient(180deg,
+      rgba(2, 4, 10, 0.34) 0%,
+      rgba(0, 0, 0, 0) 22%,
+      rgba(0, 0, 0, 0) 64%,
+      rgba(2, 4, 10, 0.55) 100%);
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
+}
+
+/* ---------- 返回首页 ---------- */
+
+.back {
+  position: fixed;
+  top: clamp(16px, 3vh, 30px);
+  left: clamp(16px, 3vw, 34px);
+  z-index: 4;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: rgba(209, 224, 255, 0.55);
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.back:hover,
+.back:focus-visible {
+  color: var(--gold-2);
+}
+
+/* ---------- 标题 ---------- */
+
+.hero {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: clamp(22px, 5.5vh, 64px);
+  z-index: 3;
+  padding: 0 24px;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  animation: hero-in 2.2s cubic-bezier(0.22, 0.61, 0.31, 1) 0.35s both;
+}
+
+.hero__kicker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(10px, 1.8vw, 20px);
+  margin: 0 0 clamp(10px, 1.4vh, 16px);
+  font-size: clamp(9px, 1.05vw, 12px);
+  font-weight: 600;
+  letter-spacing: 0.6em;
+  text-indent: 0.6em;
+  text-transform: uppercase;
+  color: rgba(var(--accent), 0.7);
+  text-shadow: 0 0 18px rgba(var(--accent), 0.35);
+}
+
+.hero__kicker::before,
+.hero__kicker::after {
+  content: "";
+  width: clamp(24px, 5vw, 66px);
+  height: 1px;
+  background: linear-gradient(90deg, rgba(var(--accent), 0), rgba(var(--accent), 0.55));
+}
+
+.hero__kicker::after {
+  transform: scaleX(-1);
+}
+
+.hero__title {
+  margin: 0;
+  font-family: "Cormorant Garamond", "Playfair Display", Georgia,
+    "Times New Roman", "Songti SC", "STSong", serif;
+  font-weight: 500;
+  font-size: clamp(38px, 7.2vw, 92px);
+  line-height: 1.02;
+  letter-spacing: 0.1em;
+  text-indent: 0.1em;
+  background: linear-gradient(178deg,
+    var(--gold-1) 0%,
+    #fff0c9 30%,
+    #ffc978 62%,
+    #e08b3c 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter:
+    drop-shadow(0 0 24px rgba(255, 190, 100, 0.3))
+    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35))
+    drop-shadow(0 14px 40px rgba(0, 0, 0, 0.55));
+}
+
+.hero__sub {
+  margin: clamp(10px, 1.6vh, 18px) 0 0;
+  font-size: clamp(10px, 1.05vw, 12px);
+  font-weight: 500;
+  letter-spacing: 0.34em;
+  text-indent: 0.34em;
+  color: rgba(214, 229, 255, 0.52);
+}
+
+/* ---------- 操作提示 ---------- */
+
+.hint {
+  position: fixed;
+  top: clamp(16px, 3vh, 30px);
+  right: clamp(16px, 3vw, 34px);
+  z-index: 3;
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: rgba(209, 224, 255, 0.42);
+  pointer-events: none;
+  transition: opacity 1.6s ease;
+}
+
+.hint.is-hidden {
+  opacity: 0;
+}
+
+/* ---------- 动画 ---------- */
+
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* ---------- 降级 / 自适应 ---------- */
+
+.noscript {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  background: var(--ink);
+  color: var(--gold-2);
+  font-size: 15px;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 700px) {
+  .hint {
+    display: none;
+  }
+
+  .hero {
+    padding: 0 18px;
+  }
+
+  .hero__title {
+    font-size: clamp(32px, 9vw, 56px);
+  }
+
+  .hero__kicker {
+    letter-spacing: 0.46em;
+    text-indent: 0.46em;
+  }
+
+  .grain {
+    display: none;
+  }
+}
+
+@media (max-height: 560px) {
+  .hero {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    animation: none;
+  }
+}
+  </style>
+</head>
+<body>
+  <!-- 粒子画布 -->
+  <canvas id="scene" aria-hidden="true"></canvas>
+
+  <a class="back" href="./index.html">← 返回首页</a>
+
+  <!-- 氛围覆盖层 -->
+  <div class="vignette" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <!-- 标题 -->
+  <main class="hero">
+    <p class="hero__kicker">Light Up the Night</p>
+    <h1 class="hero__title">烟花</h1>
+    <p class="hero__sub">愿此刻，绚烂如你</p>
+  </main>
+
+  <p class="hint" id="hint">点击发射 · 自动燃放</p>
+
+  <noscript>
+    <p class="noscript">请启用 JavaScript 以查看烟花。</p>
+  </noscript>
+
+  <script>
+/*!
+ * ============================================================================
+ *  烟花 · Fireworks
+ * ----------------------------------------------------------------------------
+ *  · 纯 Canvas 2D 粒子系统，没有任何外部依赖
+ *  · 火箭升空 / 球形与环形爆炸 / 重力与阻尼 / 拖尾辉光 / 点击发射
+ *  · 自动燃放，尊重 prefers-reduced-motion；自动适配尺寸与像素密度
+ *
+ *  想改效果，基本只需要调整下面 CONFIG 里的数字。
+ * ============================================================================
+ */
+(() => {
+  'use strict';
+
+  /* ------------------------------------------------------------------
+   *  可调参数
+   * ---------------------------------------------------------------- */
+  const CONFIG = {
+    maxParticles: 2600,   // 同时存在的爆炸粒子上限
+    autoLaunch: 1.35,     // 自动发射平均间隔（秒）
+    gravity: 190,         // 重力（像素/秒²）
+    damping: 1.05,        // 空气阻力（每秒衰减系数）
+    burstMin: 110,        // 单次爆炸最少粒子
+    burstMax: 190,        // 单次爆炸最多粒子
+    ringChance: 0.35,     // 环形爆炸概率
+    rocketSpeed: 620,     // 火箭初速度
+  };
+
+  const TAU = Math.PI * 2;
+  const clamp = (v, lo, hi) => (v < lo ? lo : v > hi ? hi : v);
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const pick = (arr) => arr[(Math.random() * arr.length) | 0];
+
+  const prefersReduced = window.matchMedia
+    ? window.matchMedia('(prefers-reduced-motion: reduce)')
+    : null;
+  let reduced = !!(prefersReduced && prefersReduced.matches);
+
+  /* ------------------------------------------------------------------
+   *  画布与上下文
+   * ---------------------------------------------------------------- */
+  let canvas = null;
+  let ctx = null;
+  let hintEl = null;
+  let bgCanvas = null;
+
+  let W = 0;
+  let H = 0;
+  let DPR = 1;
+  let SCALE = 1;
+
+  /* ------------------------------------------------------------------
+   *  调色板
+   * ---------------------------------------------------------------- */
+  const PALETTE = [
+    [255, 210, 130],  // 金
+    [255, 122, 108],  // 红
+    [255, 150, 210],  // 粉
+    [140, 220, 255],  // 青
+    [170, 255, 190],  // 绿
+    [255, 246, 222],  // 白
+    [190, 165, 255],  // 紫
+  ];
+  const CORE = [255, 250, 235];
+
+  /* ------------------------------------------------------------------
+   *  辉光贴图
+   * ---------------------------------------------------------------- */
+  const spriteCache = new Map();
+
+  function glowSprite(rgb, core = 0.9) {
+    const key = rgb[0] + ',' + rgb[1] + ',' + rgb[2] + '|' + core;
+    const cached = spriteCache.get(key);
+    if (cached) return cached;
+
+    const size = 64;
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const g = c.getContext('2d');
+    const half = size / 2;
+    const [r, gg, b] = rgb;
+
+    const grad = g.createRadialGradient(half, half, 0, half, half, half);
+    grad.addColorStop(0, `rgba(255,255,255,${core})`);
+    grad.addColorStop(0.16, `rgba(${r},${gg},${b},0.92)`);
+    grad.addColorStop(0.42, `rgba(${r},${gg},${b},0.36)`);
+    grad.addColorStop(0.72, `rgba(${r},${gg},${b},0.09)`);
+    grad.addColorStop(1, `rgba(${r},${gg},${b},0)`);
+    g.fillStyle = grad;
+    g.fillRect(0, 0, size, size);
+
+    spriteCache.set(key, c);
+    return c;
+  }
+
+  const colorSprites = PALETTE.map((c) => glowSprite(c, 0.62));
+  const coreSprite = glowSprite(CORE, 1);
+  const rocketSprite = glowSprite([255, 210, 150], 1);
+
+  /* ------------------------------------------------------------------
+   *  状态
+   * ---------------------------------------------------------------- */
+  const rockets = [];
+  const parts = [];
+  const flashes = [];
+  let autoTimer = 0;
+
+  /* ------------------------------------------------------------------
+   *  布局 / 背景
+   * ---------------------------------------------------------------- */
+  function resize() {
+    W = Math.max(1, window.innerWidth);
+    H = Math.max(1, window.innerHeight);
+
+    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = Math.min(dpr, Math.sqrt(5200000 / (W * H)));
+    DPR = clamp(dpr, 1, 2);
+
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+
+    SCALE = clamp(Math.min(W, H) / 820, 0.62, 1.3);
+
+    buildBackground();
+  }
+
+  function buildBackground() {
+    if (!bgCanvas) bgCanvas = document.createElement('canvas');
+    bgCanvas.width = Math.round(W * DPR);
+    bgCanvas.height = Math.round(H * DPR);
+    const g = bgCanvas.getContext('2d');
+    g.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+    const base = g.createLinearGradient(0, 0, 0, H);
+    base.addColorStop(0, '#070d20');
+    base.addColorStop(0.4, '#040713');
+    base.addColorStop(0.78, '#02040c');
+    base.addColorStop(1, '#010207');
+    g.fillStyle = base;
+    g.fillRect(0, 0, W, H);
+
+    const R = Math.max(W, H);
+
+    let rg = g.createRadialGradient(
+      W * 0.5, H * 0.4, 0,
+      W * 0.5, H * 0.4, R * 0.6
+    );
+    rg.addColorStop(0, 'rgba(26, 54, 120, 0.24)');
+    rg.addColorStop(0.5, 'rgba(14, 30, 70, 0.12)');
+    rg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = rg;
+    g.fillRect(0, 0, W, H);
+
+    /* 地平线暖光 */
+    rg = g.createRadialGradient(
+      W * 0.5, H * 1.04, 0,
+      W * 0.5, H * 1.04, R * 0.5
+    );
+    rg.addColorStop(0, 'rgba(255, 150, 70, 0.16)');
+    rg.addColorStop(0.55, 'rgba(150, 70, 40, 0.06)');
+    rg.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = rg;
+    g.fillRect(0, 0, W, H);
+
+    /* 背景星点 */
+    for (let i = 0; i < 150; i++) {
+      const a = rand(0.08, 0.55);
+      const r = rand(0.4, 1.3);
+      g.fillStyle = `rgba(220, 232, 255, ${a})`;
+      g.beginPath();
+      g.arc(rand(0, W), rand(0, H * 0.72), r, 0, TAU);
+      g.fill();
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   *  发射 / 爆炸
+   * ---------------------------------------------------------------- */
+  function launch(targetX, targetY) {
+    const x = clamp(
+      targetX == null ? rand(W * 0.15, W * 0.85) : targetX + rand(-40, 40),
+      W * 0.06,
+      W * 0.94
+    );
+    const tx = targetX == null ? rand(W * 0.22, W * 0.78) : targetX;
+    const ty = clamp(
+      targetY == null ? rand(H * 0.1, H * 0.42) : targetY,
+      H * 0.08,
+      H * 0.62
+    );
+
+    const flight = clamp((H - ty) / CONFIG.rocketSpeed, 0.75, 1.9);
+    const vy = (ty - H) / flight - 0.5 * CONFIG.gravity * flight;
+    const vx = (tx - x) / flight;
+
+    const a = (Math.random() * PALETTE.length) | 0;
+    let b = (Math.random() * PALETTE.length) | 0;
+    if (b === a) b = (b + 1) % PALETTE.length;
+
+    rockets.push({
+      x,
+      y: H + 8,
+      vx,
+      vy,
+      targetY: ty,
+      sprites: [colorSprites[a], colorSprites[b]],
+      core: Math.random() < 0.45,
+    });
+  }
+
+  function explode(x, y, sprites, useCore) {
+    const room = CONFIG.maxParticles - parts.length;
+    if (room <= 4) return;
+
+    const narrow = W < 700;
+    let count = Math.round(
+      rand(CONFIG.burstMin, CONFIG.burstMax) * (narrow ? 0.62 : 1) * (reduced ? 0.6 : 1)
+    );
+    count = Math.min(count, room);
+
+    const ring = Math.random() < CONFIG.ringChance;
+    const baseSpeed = rand(210, 330) * SCALE;
+
+    for (let i = 0; i < count; i++) {
+      const a = (i / count) * TAU + rand(-0.03, 0.03);
+      const speed = ring
+        ? baseSpeed * rand(0.94, 1.06)
+        : baseSpeed * Math.pow(Math.random(), 0.42);
+
+      const core = useCore && Math.random() < 0.18;
+      const life = rand(1.5, 2.5);
+      parts.push({
+        x,
+        y,
+        vx: Math.cos(a) * speed,
+        vy: Math.sin(a) * speed,
+        life,
+        maxLife: life,
+        size: rand(0.8, 2.1) * (core ? 1.35 : 1),
+        sprite: core ? coreSprite : pick(sprites),
+      });
+    }
+
+    flashes.push({
+      x,
+      y,
+      life: 0.38,
+      maxLife: 0.38,
+      size: rand(46, 82) * SCALE,
+    });
+
+    /* 偶尔来一次子爆炸，层次更丰富 */
+    if (!reduced && Math.random() < 0.22 && parts.length + 120 < CONFIG.maxParticles) {
+      setTimeout(() => {
+        if (!document.hidden) {
+          const px = clamp(x + rand(-90, 90), 0, W);
+          const py = clamp(y + rand(-40, 120), 0, H);
+          explode(px, py, sprites, true);
+        }
+      }, rand(260, 520));
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   *  更新
+   * ---------------------------------------------------------------- */
+  function updateRockets(dt) {
+    for (let i = rockets.length - 1; i >= 0; i--) {
+      const r = rockets[i];
+      r.vy += CONFIG.gravity * dt;
+      r.x += r.vx * dt;
+      r.y += r.vy * dt;
+
+      if (r.vy > -60 || r.y <= r.targetY) {
+        explode(r.x, r.y, r.sprites, r.core);
+        rockets.splice(i, 1);
+      }
+    }
+  }
+
+  function updateParts(dt) {
+    const damp = Math.exp(-CONFIG.damping * dt);
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i];
+      p.life -= dt;
+      if (p.life <= 0) {
+        parts.splice(i, 1);
+        continue;
+      }
+      p.vy += CONFIG.gravity * dt;
+      p.vx *= damp;
+      p.vy *= damp;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+    }
+  }
+
+  function updateFlashes(dt) {
+    for (let i = flashes.length - 1; i >= 0; i--) {
+      const f = flashes[i];
+      f.life -= dt;
+      if (f.life <= 0) flashes.splice(i, 1);
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   *  绘制（全部直接画在主画布上，用两段残影当拖尾）
+   * ---------------------------------------------------------------- */
+  function draw() {
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = 1;
+    ctx.drawImage(bgCanvas, 0, 0, W, H);
+
+    ctx.globalCompositeOperation = 'lighter';
+
+    /* 火箭与尾焰 */
+    for (let i = 0; i < rockets.length; i++) {
+      const r = rockets[i];
+      for (let k = 4; k >= 1; k--) {
+        const size = (7 - k * 1.1) * SCALE;
+        const yy = r.y + k * 7 * SCALE;
+        ctx.globalAlpha = 0.5 * (1 - k / 6);
+        ctx.drawImage(rocketSprite, r.x - size, yy - size, size * 2, size * 2);
+      }
+      const size = 7 * SCALE;
+      ctx.globalAlpha = 0.95;
+      ctx.drawImage(rocketSprite, r.x - size, r.y - size, size * 2, size * 2);
+    }
+
+    /* 爆炸粒子：沿速度方向拉出光带，再叠一个更亮的头部 */
+    for (let i = 0; i < parts.length; i++) {
+      const p = parts[i];
+      const t = clamp(p.life / p.maxLife, 0, 1);
+      const fade = Math.pow(t, 0.55);
+      const size = p.size * 3.6 * SCALE * (0.55 + fade * 0.75);
+      const speed = Math.hypot(p.vx, p.vy);
+      const stretch = clamp(1 + speed / 150, 1, 4.2);
+
+      if (stretch > 1.05) {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(Math.atan2(p.vy, p.vx));
+        ctx.scale(stretch, 1);
+        ctx.globalAlpha = clamp(fade * 0.5, 0, 1);
+        ctx.drawImage(p.sprite, -size, -size, size * 2, size * 2);
+        ctx.restore();
+      }
+
+      ctx.globalAlpha = fade;
+      ctx.drawImage(p.sprite, p.x - size, p.y - size, size * 2, size * 2);
+    }
+
+    /* 爆炸瞬间的闪光 */
+    for (let i = 0; i < flashes.length; i++) {
+      const f = flashes[i];
+      const t = clamp(f.life / f.maxLife, 0, 1);
+      const size = f.size * (1.6 - t * 0.6);
+      ctx.globalAlpha = Math.pow(t, 1.4) * 0.75;
+      ctx.drawImage(coreSprite, f.x - size, f.y - size, size * 2, size * 2);
+    }
+
+    ctx.globalAlpha = 1;
+  }
+
+  /* ------------------------------------------------------------------
+   *  主循环
+   * ---------------------------------------------------------------- */
+  let lastTime = 0;
+  let rafId = 0;
+
+  function frame(now) {
+    if (!lastTime) lastTime = now;
+    const real = (now - lastTime) / 1000;
+    lastTime = now;
+    const dt = clamp(real, 0, 0.05);
+
+    if (!reduced) {
+      autoTimer -= dt;
+      if (autoTimer <= 0) {
+        launch();
+        autoTimer = rand(0.75, CONFIG.autoLaunch * 1.45);
+      }
+    }
+
+    updateRockets(dt);
+    updateParts(dt);
+    updateFlashes(dt);
+    draw();
+
+    rafId = requestAnimationFrame(frame);
+  }
+
+  /* ------------------------------------------------------------------
+   *  交互
+   * ---------------------------------------------------------------- */
+  function hideHint() {
+    if (!hintEl || hintEl.classList.contains('is-hidden')) return;
+    hintEl.classList.add('is-hidden');
+  }
+
+  function onPointerDown(e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    launch(e.clientX, e.clientY);
+    hideHint();
+  }
+
+  function addListeners() {
+    canvas.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('resize', resize);
+    window.addEventListener('orientationchange', () => setTimeout(resize, 120));
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        cancelAnimationFrame(rafId);
+        rafId = 0;
+      } else if (!rafId) {
+        lastTime = 0;
+        rafId = requestAnimationFrame(frame);
+      }
+    });
+
+    if (prefersReduced && prefersReduced.addEventListener) {
+      prefersReduced.addEventListener('change', (e) => {
+        reduced = e.matches;
+      });
+    }
+  }
+
+  /* ------------------------------------------------------------------
+   *  初始化
+   * ---------------------------------------------------------------- */
+  function ensureCanvas() {
+    canvas = document.getElementById('scene');
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvas.id = 'scene';
+      canvas.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(canvas);
+    }
+
+    Object.assign(canvas.style, {
+      position: 'fixed',
+      left: '0',
+      top: '0',
+      width: '100%',
+      height: '100%',
+      display: 'block',
+      zIndex: '0',
+      touchAction: 'none',
+      cursor: 'crosshair',
+    });
+
+    ctx = canvas.getContext('2d', { alpha: false });
+    hintEl = document.getElementById('hint');
+  }
+
+  function init() {
+    ensureCanvas();
+    resize();
+    addListeners();
+
+    autoTimer = 0.35;
+    if (!reduced) {
+      launch(W * 0.34, H * 0.24);
+      launch(W * 0.66, H * 0.18);
+    }
+
+    if (hintEl) {
+      setTimeout(() => hintEl.classList.add('is-hidden'), 10000);
+    }
+
+    draw();
+    lastTime = 0;
+    rafId = requestAnimationFrame(frame);
+
+    if (window.console && console.info) {
+      console.info('[Fireworks] scene initialized');
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init, { once: true });
+  } else {
+    init();
+  }
+})();
+  </script>
+</body>
+</html>
