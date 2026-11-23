@@ -11,14 +11,15 @@
 ## 文件结构
 
 ```
-index.html                     页面结构、标题、SEO / 分享信息
-style.css                      页面氛围层（暗角、颗粒、金色标题、响应式）
-main.js                        粒子场景、三维投影、交互与渲染
-christmas-tree-standalone.html 单文件版：CSS / JS 全部内联，不依赖任何路径
-README.md                      本说明
+index.html    首页（落地页）：标题 + 进入圣诞树的入口，引用 home.css
+home.css      首页样式
+tree.html     圣诞树页面：样式与脚本全部内联，单文件即可运行
+README.md     本说明
 ```
 
-三个文件放在同一目录即可，互相使用相对路径引用。若站点平台处理 `.js` / `.css` 资源不可靠，可直接部署 `christmas-tree-standalone.html`，它不需要任何配套文件。
+**当前线上就是这两个页面**：`/` 是首页，`/tree` 是圣诞树。
+
+`tree.html` 是自包含单文件——CSS 写在 `<style>` 里，JS 写在 `<script>` 里，不依赖任何外部文件。想单独部署圣诞树，只上传 `tree.html` 即可。
 
 ## 部署
 

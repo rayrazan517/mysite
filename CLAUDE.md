@@ -1,13 +1,13 @@
 # CLAUDE.md
 
-本项目的完整说明在 [AGENTS.md](./AGENTS.md)，请先读它再动手。
+完整说明见 [AGENTS.md](./AGENTS.md)，先读它。
 
-要点速览：
+要点：
 
-- 纯静态站：`index.html` + `style.css` + `main.js`，无框架、无构建、无依赖
-- 渲染是 Canvas 2D 手写 3D 投影，不要引入 Three.js 或任何外部库
-- 可调参数集中在 `main.js` 顶部 `CONFIG`，颜色在 `GREENS` / `LIGHTS` / `ORNAMENTS` / `SPARK_COLORS`
-- 禁止执行 git 命令、禁止改文件名、禁止删除现有文件
-- 线上：https://meloveme.top （Cloudflare Workers 静态托管）
+- 两个页面：`index.html`（首页，配 `home.css`）、`tree.html`（圣诞树，样式与脚本内联）
+- 纯静态，无框架、无构建、无外部依赖
+- `tree.html` 的参数在顶部 `CONFIG`，配色在 `GREENS` / `LIGHTS` / `ORNAMENTS` / `SPARK_COLORS`
+- 禁止执行 git 命令、禁止改名、禁止删除现有文件
+- 线上：https://meloveme.top
 
 @AGENTS.md
